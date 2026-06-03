@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: wedding-photo-upload
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # 目標 Google Drive 資料夾 ID
+      - key: DRIVE_FOLDER_ID
+        value: 1Bx8968xwZgscSFxH_fs83sNYflTX26iz
+      # 部署後改成 Render 給你的正式網址（給 QR code 用）
+      - key: PUBLIC_BASE_URL
+        sync: false
+      # 把本機 token.json 的整段內容貼進來（在 Render 後台設定，勿寫死在檔案）
+      - key: GOOGLE_TOKEN_JSON
+        sync: false
+      - key: MAX_FILE_SIZE_MB
+        value: "50"

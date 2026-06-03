@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>婚禮照片上傳 💍</title>
+  <style>
+    :root {
+      --bg: #fdf6f0;
+      --card: #ffffff;
+      --accent: #c98a8a;
+      --accent-dark: #a76b6b;
+      --text: #4a3f3f;
+      --muted: #9b8b8b;
+      --ok: #5a9e6f;
+      --err: #c0564f;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+        "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(160deg, #fdf6f0 0%, #f7e8e1 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+    .wrap { width: 100%; max-width: 480px; }
+    header { text-align: center; margin-bottom: 20px; }
+    header .rings { font-size: 40px; }
+    header h1 { font-size: 22px; margin: 8px 0 4px; font-weight: 600; }
+    header p { color: var(--muted); font-size: 14px; margin: 0; }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(167, 107, 107, 0.12);
+    }
+
+    .drop {
+      border: 2px dashed #e3c9c2;
+      border-radius: 16px;
+      padding: 32px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      background: #fffaf8;
+    }
+    .drop:active { transform: scale(0.99); }
+    .drop .icon { font-size: 44px; }
+    .drop .title { font-weight: 600; margin-top: 8px; }
+    .drop .hint { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    input[type="file"] { display: none; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      margin-top: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn:active { background: var(--accent-dark); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .list { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fbf3ef;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .thumb {
+      width: 46px; height: 46px; border-radius: 8px; object-fit: cover;
+      flex-shrink: 0; background: #eaddd8;
+    }
+    .thumb.file { display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .meta { flex: 1; min-width: 0; }
+    .meta .name {
+      font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .bar { height: 6px; background: #e8dcd7; border-radius: 4px; margin-top: 6px; overflow: hidden; }
+    .bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+    .status { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+
+    .done-msg {
+      text-align: center; margin-top: 18px; font-size: 15px; color: var(--ok);
+      font-weight: 600; display: none;
+    }
+    footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="rings">💍</div>
+      <h1>分享你拍下的幸福瞬間</h1>
+      <p>選擇照片或影片，一鍵上傳給我們 ❤️</p>
+    </header>
+
+    <div class="card">
+      <label class="drop" id="drop" for="fileInput">
+        <div class="icon">📷</div>
+        <div class="title">點此選擇照片 / 影片</div>
+        <div class="hint">可一次選擇多張，支援手機相簿與拍照</div>
+      </label>
+      <input type="file" id="fileInput" accept="image/*,video/*" multiple />
+
+      <button class="btn" id="uploadBtn" disabled>上傳照片</button>
+
+      <div class="list" id="list"></div>
+      <div class="done-msg" id="doneMsg">🎉 上傳完成，謝謝你的祝福！</div>
+    </div>
+
+    <footer>你的照片會安全地傳給新人，其他賓客看不到。</footer>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const list = document.getElementById("list");
+    const doneMsg = document.getElementById("doneMsg");
+
+    let files = [];
+
+    fileInput.addEventListener("change", () => {
+      files = Array.from(fileInput.files);
+      renderList();
+      uploadBtn.disabled = files.length === 0;
+      doneMsg.style.display = "none";
+    });
+
+    function renderList() {
+      list.innerHTML = "";
+      files.forEach((file, i) => {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.id = "item-" + i;
+
+        const isImg = file.type.startsWith("image/");
+        if (isImg) {
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.src = URL.createObjectURL(file);
+          item.appendChild(img);
+        } else {
+          const ph = document.createElement("div");
+          ph.className = "thumb file";
+          ph.textContent = "🎬";
+          item.appendChild(ph);
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.innerHTML =
+          '<div class="name">' + escapeHtml(file.name) + "</div>" +
+          '<div class="bar"><span></span></div>';
+        item.appendChild(meta);
+
+        const status = document.createElement("div");
+        status.className = "status";
+        item.appendChild(status);
+
+        list.appendChild(item);
+      });
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+      );
+    }
+
+    uploadBtn.addEventListener("click", async () => {
+      uploadBtn.disabled = true;
+      fileInput.disabled = true;
+      let okCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const ok = await uploadOne(files[i], i);
+        if (ok) okCount++;
+      }
+
+      if (okCount === files.length) {
+        doneMsg.textContent = "🎉 全部上傳完成，謝謝你的祝福！";
+      } else {
+        doneMsg.textContent = `已上傳 ${okCount}/${files.length} 張，可重試失敗的項目。`;
+      }
+      doneMsg.style.display = "block";
+
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "再上傳更多";
+      fileInput.disabled = false;
+    });
+
+    function uploadOne(file, i) {
+      return new Promise((resolve) => {
+        const item = document.getElementById("item-" + i);
+        const bar = item.querySelector(".bar > span");
+        const status = item.querySelector(".status");
+        status.className = "status";
+        status.textContent = "";
+
+        const form = new FormData();
+        form.append("file", file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/upload");
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            bar.style.width = (e.loaded / e.total) * 100 + "%";
+          }
+        };
+        xhr.onload = () => {
+          let res = {};
+          try { res = JSON.parse(xhr.responseText); } catch (_) {}
+          if (xhr.status === 200 && res.ok) {
+            bar.style.width = "100%";
+            status.className = "status ok";
+            status.textContent = "✓";
+            resolve(true);
+          } else {
+            status.className = "status err";
+            status.textContent = "✕";
+            status.title = (res && res.error) || "上傳失敗";
+            resolve(false);
+          }
+        };
+        xhr.onerror = () => {
+          status.className = "status err";
+          status.textContent = "✕";
+          resolve(false);
+        };
+        xhr.send(form);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# 機密檔案：絕對不要上傳到 git / 公開
+.env
+credentials.json
+token.json
+*.token.json
+
+# QR code 輸出
+wedding_qr.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
