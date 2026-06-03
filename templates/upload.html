@@ -28,29 +28,65 @@
       padding: 24px 16px 48px;
     }
     .wrap { width: 100%; max-width: 480px; }
-    header { text-align: center; margin-bottom: 20px; }
-    header .rings { font-size: 40px; }
-    header h1 { font-size: 22px; margin: 8px 0 4px; font-weight: 600; }
+    header { text-align: center; margin-bottom: 22px; }
+    header .rings { font-size: 44px; }
+    header h1 { font-size: 23px; margin: 8px 0 4px; font-weight: 700; }
     header p { color: var(--muted); font-size: 14px; margin: 0; }
 
     .card {
       background: var(--card);
       border-radius: 20px;
-      padding: 24px;
+      padding: 22px;
       box-shadow: 0 8px 30px rgba(167, 107, 107, 0.12);
+    }
+
+    /* 步驟區塊 */
+    .step { margin-bottom: 18px; }
+    .step:last-of-type { margin-bottom: 0; }
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .step-num {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 8px rgba(167, 107, 107, 0.35);
+    }
+    .step-num.gray { background: #d8c5c0; box-shadow: none; }
+    .step-title { font-size: 16px; font-weight: 700; }
+    .step-sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+    /* 步驟內容往右縮排，對齊標題、避免與數字圓圈重疊 */
+    .step-body { padding-left: 40px; }
+
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #eaddd8, transparent);
+      margin: 18px 0;
     }
 
     .drop {
       border: 2px dashed #e3c9c2;
       border-radius: 16px;
-      padding: 32px 16px;
+      padding: 28px 16px;
       text-align: center;
       cursor: pointer;
       transition: 0.2s;
       background: #fffaf8;
     }
     .drop:active { transform: scale(0.99); }
-    .drop .icon { font-size: 44px; }
+    .drop.filled { border-style: solid; border-color: #cde6d3; background: #f4fbf5; }
+    .drop .icon { font-size: 42px; }
     .drop .title { font-weight: 600; margin-top: 8px; }
     .drop .hint { color: var(--muted); font-size: 13px; margin-top: 4px; }
 
@@ -61,19 +97,23 @@
       width: 100%;
       border: none;
       border-radius: 14px;
-      padding: 15px;
-      font-size: 16px;
-      font-weight: 600;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 700;
       color: #fff;
       background: var(--accent);
-      margin-top: 16px;
       cursor: pointer;
       transition: 0.2s;
+      box-shadow: 0 6px 16px rgba(201, 138, 138, 0.35);
     }
     .btn:active { background: var(--accent-dark); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
 
-    .list { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+    .list { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
     .item {
       display: flex;
       align-items: center;
@@ -97,11 +137,20 @@
     .status.ok { color: var(--ok); }
     .status.err { color: var(--err); }
 
-    .done-msg {
-      text-align: center; margin-top: 18px; font-size: 15px; color: var(--ok);
-      font-weight: 600; display: none;
+    .count-badge {
+      display: none;
+      text-align: center;
+      font-size: 13px;
+      color: var(--accent-dark);
+      font-weight: 600;
+      margin-top: 10px;
     }
-    footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+
+    .done-msg {
+      text-align: center; margin-top: 16px; font-size: 15px; color: var(--ok);
+      font-weight: 700; display: none;
+    }
+    footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 22px; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -109,40 +158,95 @@
     <header>
       <div class="rings">💍</div>
       <h1>分享你拍下的幸福瞬間</h1>
-      <p>選擇照片或影片，一鍵上傳給我們 ❤️</p>
+      <p>只要兩步驟，把照片傳給我們 ❤️</p>
     </header>
 
     <div class="card">
-      <label class="drop" id="drop" for="fileInput">
-        <div class="icon">📷</div>
-        <div class="title">點此選擇照片 / 影片</div>
-        <div class="hint">可一次選擇多張，支援手機相簿與拍照</div>
-      </label>
-      <input type="file" id="fileInput" accept="image/*,video/*" multiple />
+      <!-- 步驟一：選擇照片 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">選擇照片 / 影片</div>
+            <div class="step-sub">可一次選多張，支援手機相簿與現場拍照</div>
+          </div>
+        </div>
+        <div class="step-body">
+          <label class="drop" id="drop" for="fileInput">
+            <div class="icon">📷</div>
+            <div class="title" id="dropTitle">點這裡選擇照片</div>
+            <div class="hint" id="dropHint">點一下開啟相簿或相機</div>
+          </label>
+          <div class="count-badge" id="countBadge"></div>
+          <input type="file" id="fileInput" accept="image/*,video/*" multiple />
+        </div>
+      </div>
 
-      <button class="btn" id="uploadBtn" disabled>上傳照片</button>
+      <div class="divider"></div>
 
-      <div class="list" id="list"></div>
-      <div class="done-msg" id="doneMsg">🎉 上傳完成，謝謝你的祝福！</div>
+      <!-- 步驟二：上傳 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num gray" id="step2Num">2</div>
+          <div>
+            <div class="step-title">按下「上傳」</div>
+            <div class="step-sub">選好照片後，點下方按鈕送出</div>
+          </div>
+        </div>
+        <div class="step-body">
+          <button class="btn" id="uploadBtn" disabled>請先選擇照片</button>
+          <div class="list" id="list"></div>
+          <div class="done-msg" id="doneMsg">🎉 上傳完成，謝謝你的祝福！</div>
+        </div>
+      </div>
+
     </div>
 
-    <footer>你的照片會安全地傳給新人，其他賓客看不到。</footer>
+    <footer>
+      你的照片會安全地傳給新人 💌<br />
+      其他賓客看不到你上傳的內容。
+    </footer>
   </div>
+
 
   <script>
     const fileInput = document.getElementById("fileInput");
     const uploadBtn = document.getElementById("uploadBtn");
     const list = document.getElementById("list");
     const doneMsg = document.getElementById("doneMsg");
+    const drop = document.getElementById("drop");
+    const dropTitle = document.getElementById("dropTitle");
+    const dropHint = document.getElementById("dropHint");
+    const countBadge = document.getElementById("countBadge");
+    const step2Num = document.getElementById("step2Num");
 
     let files = [];
 
     fileInput.addEventListener("change", () => {
       files = Array.from(fileInput.files);
       renderList();
-      uploadBtn.disabled = files.length === 0;
       doneMsg.style.display = "none";
+
+      if (files.length > 0) {
+        drop.classList.add("filled");
+        dropTitle.textContent = "已選擇 " + files.length + " 個檔案";
+        dropHint.textContent = "想換或多加？再點一下重新選擇";
+        countBadge.style.display = "block";
+        countBadge.textContent = "✓ 已選好，請到步驟 2 按上傳";
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "上傳這 " + files.length + " 個檔案";
+        step2Num.classList.remove("gray");
+      } else {
+        drop.classList.remove("filled");
+        dropTitle.textContent = "點這裡選擇照片";
+        dropHint.textContent = "點一下開啟相簿或相機";
+        countBadge.style.display = "none";
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = "請先選擇照片";
+        step2Num.classList.add("gray");
+      }
     });
+
 
     function renderList() {
       list.innerHTML = "";
@@ -187,6 +291,7 @@
 
     uploadBtn.addEventListener("click", async () => {
       uploadBtn.disabled = true;
+      uploadBtn.textContent = "上傳中…請稍候";
       fileInput.disabled = true;
       let okCount = 0;
 
@@ -198,12 +303,12 @@
       if (okCount === files.length) {
         doneMsg.textContent = "🎉 全部上傳完成，謝謝你的祝福！";
       } else {
-        doneMsg.textContent = `已上傳 ${okCount}/${files.length} 張，可重試失敗的項目。`;
+        doneMsg.textContent = `已上傳 ${okCount}/${files.length} 個，可重試失敗的項目。`;
       }
       doneMsg.style.display = "block";
 
       uploadBtn.disabled = false;
-      uploadBtn.textContent = "再上傳更多";
+      uploadBtn.textContent = "再選照片上傳更多";
       fileInput.disabled = false;
     });
 
