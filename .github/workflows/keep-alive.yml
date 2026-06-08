@@ -1,0 +1,25 @@
+name: Keep Render Awake
+
+# 每 10 分鐘戳一次 Render 的 /health，避免免費方案休眠。
+# 婚禮結束後若不需要，可到 GitHub repo 的 Actions 頁停用這個 workflow。
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # 也允許手動觸發
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          echo "Pinging $TARGET"
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$TARGET" || echo "000")
+          echo "HTTP status: $code"
+          if [ "$code" = "200" ]; then
+            echo "✅ Service is awake."
+          else
+            echo "⚠️ Unexpected status ($code), but ping was sent."
+          fi
+        env:
+          TARGET: https://wedding-photos-5fiw.onrender.com/health
